@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/lflxp/studyNeo4j/pkg"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 
@@ -49,7 +50,13 @@ func helloWorld(uri, username, password string) (string, error) {
 }
 
 func main() {
-	rs, err := helloWorld("bolt://localhost:7687", "root", "system")
+	// rs, err := helloWorld("bolt://localhost:7687", "root", "system")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(rs)
+	// rs, err := pkg.ReadTran("match (b:Person{name:'张三'})-[x:BELONG]->(a)<-[r:分配]-(c) return a,c,b,r,x", nil)
+	rs, err := pkg.ReadTran("match (a)-[r:BELONG]->(b) return a,b,r", nil)
 	if err != nil {
 		panic(err)
 	}
