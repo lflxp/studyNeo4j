@@ -56,7 +56,10 @@ func main() {
 	// }
 	// fmt.Println(rs)
 	// rs, err := pkg.ReadTran("match (b:Person{name:'张三'})-[x:BELONG]->(a)<-[r:分配]-(c) return a,c,b,r,x", nil)
-	rs, err := pkg.ReadTran("match (a)-[r:BELONG]->(b) return a,b,r", nil)
+	// rs, err := pkg.ReadTran("match (a)-[r:BELONG]->(b) return a,b,r", nil)
+	// rs, err := pkg.ReadTran("match (a)-[r:ACTED_IN]->(b) return a.name,b,r", nil)
+	// rs, err := pkg.ReadTran("match (a:Person) return a.name", nil)
+	rs, err := pkg.ReadTran("create (a:Person{name:'123'})", nil)
 	if err != nil {
 		panic(err)
 	}
