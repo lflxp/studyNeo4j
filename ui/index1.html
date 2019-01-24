@@ -1,0 +1,171 @@
+<html>
+<head>
+    <script type="text/javascript" src="http://d3js.org/d3.v5.min.js"></script>
+    <meta charset="UTF-8">    
+</head>
+<body>
+  	<p></p>
+  	<p></p>
+  	<p id="#myP3"></p>
+    <div id="viz"></div>
+    <svg width="960" height="600"></svg>
+    <script>
+        // https://blog.csdn.net/qq_34414916/article/details/80026029
+        //var str = 'this is animal';
+    	//var p = d3.select("body")
+    	//	.selectAll("p");
+    		
+    	// p.text("d3js World");
+        // 字符加载
+        //p.datum(str).text(function(d,i){
+         //   return '第'+i+'个元素'+d;
+       // });
+
+        // 数组加载
+        // var dataset = ['one','two','fat'];
+        //p.data(dataset).text(function(d,i){
+        //    return '第'+i+'个动物'+d;
+        //});
+
+        var dataset = [3,6,9,12,15];
+    	var p = d3.select("body")
+    		.selectAll("p");
+    	var update = p.data(dataset)//绑定数据,并得到update部分
+    	var enter = update.enter();//得到enter部分
+        var exit = update.exit();//得到exit部分
+    	//下面检验是否真的得到
+    	//对于update的处理
+    	update.text(function(d,i){
+    		return "update: "+d+",index: "+i;
+    	})
+    	//对于enter的处理
+    	//注意，这里需要先添加足够多的<p>，然后在添加文本
+    	var pEnter = enter.append("p")//添加足够多的<p>
+    	pEnter.text(function(d,i){
+    		return "enter: "+d+",index: "+i;
+        });
+
+        // 代码说明：
+
+        //-这里需要说明的是：在得到exit部分后，不需要使用append("xx")来添加元素，而enter需要，这样很容易理解其实。还有就是，对于exit部分的处理通常是删除exit.remove();（这里还没讲，下一章会详细讲解）
+        //对于exit的处理通常是删除 ，但在这里我并没有这么做   	
+    	exit.text(function(d,i){
+    		return "exit";
+    	})
+
+        //   -p.style("color","red");这里是为text添加样式，设置颜色为红色
+        p.style('color','red');
+
+        // https://blog.csdn.net/qq_34414916/article/details/80028630
+        p.insert('p','#myP3').text('this is insert').style('color','yellow');
+
+        // svg
+        var marge = {top:60,bottom:60,left:60,right:60}
+    	var svg = d3.select("svg");//得到SVG画布
+    	var width = svg.attr("width");//得到画布的宽
+    	var height = svg.attr("height");//得到画布的长
+    	var g = svg.append("g")
+    		.attr("transform","translate("+marge.top+","+marge.left+")");
+    	
+    	var dataset = [10,20,30,23,13,40,27,35,20];
+   
+    	var xScale = d3.scaleBand()
+    		.domain(d3.range(dataset.length))
+    		.rangeRound([0,width-marge.left-marge.right]);
+    	var xAxis = d3.axisBottom(xScale);
+    		
+    	var yScale = d3.scaleLinear()
+    		.domain([0,d3.max(dataset)])
+    		.range([height-marge.top-marge.bottom,0]);
+    	var yAxis = d3.axisLeft(yScale);
+    	
+    	g.append("g")
+    		.attr("transform","translate("+0+","+(height-marge.top-marge.bottom)+")")
+    		.call(xAxis);
+    	g.append("g")
+    		.attr("transform","translate(0,0)")
+    		.call(yAxis);
+    		
+    	//绘制矩形和文字
+    	var gs = g.selectAll(".rect")
+    		.data(dataset)
+    		.enter()
+    		.append("g");
+    	
+    	//绘制矩形
+    	var rectPadding = 20;//矩形之间的间隙
+    	gs.append("rect")
+    		.attr("x",function(d,i){
+    			return xScale(i)+rectPadding/2;
+    		})	
+    		.attr("y",function(d){
+    			var min = yScale.domain()[0];
+    			return yScale(min);
+    		})
+    		.attr("width",function(){
+    			return xScale.step()-rectPadding;
+    		})
+    		.attr("height",function(d){
+    			return 0;
+    		})
+    		.attr("fill","blue")
+    		.transition()
+    		.duration(2000)
+    		.delay(function(d,i){
+    			return i*400;
+    		})
+    		//.ease(d3.easeElasticInOut)
+    		.attr("y",function(d){
+    			return yScale(d);
+    		})
+    		.attr("height",function(d){
+    			return height-marge.top-marge.bottom-yScale(d);
+    		})
+            
+    		
+    	//绘制文字
+    	gs.append("text")
+    		.attr("x",function(d,i){
+    			return xScale(i)+rectPadding/2;
+    		})
+    		.attr("y",function(d){
+            	var min = yScale.domain()[0];
+    			return yScale(min);
+        	})
+        	.attr("dx",function(){
+        		(xScale.step()-rectPadding)/2;
+        	})
+        	.attr("dy",20)
+        	.text(function(d){
+        		return d;
+        	})
+        	.transition()
+    		.duration(2000)
+    		.delay(function(d,i){
+    			return i*400;
+    		})
+    		//.ease(d3.easeElasticInOut)
+        	.attr("y",function(d){
+    			return yScale(d);
+    		});
+/**
+        为了与图形元素进行交互操作，我们还是需要以下新的知识点
+
+on("eventName",function)；该函数是添加一个监听事件，它的第一个参数是事件类型，第二个参数是响应事件的内容
+d3.select(this),选择当前元素
+    常见的事件类型
+
+click：鼠标单击某元素时触发，相当于mousedown和mouseup的组合
+mouseover：鼠标放在某元素上触发
+mouseout：鼠标移出某元素时触发
+mousemove：鼠标移动时触发
+mousedown：鼠标按钮被按下时触发
+mouseup：鼠标按钮被松开时触发
+dblclick：鼠标双击时触发
+当然还有很多，上面列出来的只是关于鼠标监听事件，还有键盘等的监听事件，在这里就不多讲了，给上官网API：https://developer.mozilla.org/en-US/docs/Web/Events#Standard_events
+**/
+    
+    </script>
+  </body>
+
+</html>

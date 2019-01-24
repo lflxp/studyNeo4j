@@ -63,7 +63,7 @@ func ReadTran(cql string, arg map[string]interface{}) (string, error) {
 
 		for {
 			if result.Next() {
-				fmt.Println(result.Record().Keys())
+				// fmt.Println(result.Record().Keys())
 				// fmt.Println(result.Record().Keys(), result.Record().Values())
 				// person := result.Record().GetByIndex(0).(neo4j.Node)
 				// // fmt.Println(person.Id(), person.Labels(), person.Props())
@@ -80,39 +80,50 @@ func ReadTran(cql string, arg map[string]interface{}) (string, error) {
 				// 	panic(err)
 				// }
 				// fmt.Println(string(data))
-
+				node_map := map[int64]map[string]interface{}{}
 				for n, x := range result.Record().Keys() {
-					tmp_rs := map[string]interface{}{}
+					var tmp_rs map[string]interface{}
 					rs := result.Record().GetByIndex(n)
 					switch v := rs.(type) {
 					case neo4j.Node:
-						fmt.Println("node")
-						tmp_rs["name"] = x
-						tmp_rs["props"] = rs.(neo4j.Node).Props()
-						tmp_rs["id"] = rs.(neo4j.Node).Id()
-						tmp_rs["labels"] = rs.(neo4j.Node).Labels()
-						tmp_rs["kind"] = "node"
-						ss, _ := json.Marshal(tmp_rs)
-						fmt.Println(string(ss))
-						node = append(node, tmp_rs)
+						// fmt.Println("node")
+						if _, ok := node_map[rs.(neo4j.Node).Id()]; !ok {
+							tmp_rs = map[string]interface{}{}
+							tmp_rs["group"] = x
+							tmp_rs["props"] = rs.(neo4j.Node).Props()
+							tmp_rs["id"] = rs.(neo4j.Node).Id()
+							tmp_rs["labels"] = rs.(neo4j.Node).Labels()
+							tmp_rs["type"] = "node"
+							// ss, _ := json.Marshal(tmp_rs)
+							// fmt.Println(string(ss))
+							// node = append(node, tmp_rs)
+							node_map[rs.(neo4j.Node).Id()] = tmp_rs
+						}
+
 					case neo4j.Relationship:
-						fmt.Println("relationship")
+						tmp_rs = map[string]interface{}{}
+						// fmt.Println("relationship")
 						tmp_rs["name"] = x
-						tmp_rs["Id"] = rs.(neo4j.Relationship).Id()
+						// tmp_rs["id"] = rs.(neo4j.Relationship).Id()
 						tmp_rs["props"] = rs.(neo4j.Relationship).Props()
-						tmp_rs["type"] = rs.(neo4j.Relationship).Type()
-						tmp_rs["startid"] = rs.(neo4j.Relationship).StartId()
-						tmp_rs["endid"] = rs.(neo4j.Relationship).EndId()
-						ss, _ := json.Marshal(tmp_rs)
-						fmt.Println(string(ss))
+						tmp_rs["relation"] = rs.(neo4j.Relationship).Type()
+						tmp_rs["source"] = rs.(neo4j.Relationship).StartId()
+						tmp_rs["target"] = rs.(neo4j.Relationship).EndId()
+						tmp_rs["value"] = 1
+						// ss, _ := json.Marshal(tmp_rs)
+						// fmt.Println(string(ss))
 						relation = append(relation, tmp_rs)
 					case string:
-						fmt.Println("string")
-						tmp_rs["name"] = x
-						tmp_rs["value"] = v
-						tmp_rs["kind"] = "string"
-						ss, _ := json.Marshal(tmp_rs)
-						fmt.Println(string(ss))
+						tmp_rs = map[string]interface{}{}
+						// fmt.Println("string")
+						tmp_rs["group"] = x
+						tmp_rs["value"] = rs
+						tmp_rs["type"] = "string"
+						// ss, _ := json.Marshal(tmp_rs)
+						// fmt.Println(string(ss))
+						node = append(node, tmp_rs)
+					// case int64:
+					// 	tmp_rs["length"] = rs
 					default:
 						fmt.Println("unknow type", v)
 					}
@@ -121,15 +132,30 @@ func ReadTran(cql string, arg map[string]interface{}) (string, error) {
 				// fmt.Println(result.Record().GetByIndex(0))
 				// return result.Record().GetByIndex(0), nil
 				// return "ok", nil
+
+				for _, v := range node_map {
+					node = append(node, v)
+				}
 			} else {
 				break
 			}
 		}
 
-		// node_string, _ := json.Marshal(node)
-		// fmt.Println(string(node_string))
-		// relation_string, _ := json.Marshal(relation)
-		// fmt.Println(string(relation_string))
+		countNode := map[int64]int{}
+		for n1, x := range node {
+			countNode[x.(map[string]interface{})["id"].(int64)] = n1
+		}
+		node_string, _ := json.Marshal(node)
+
+		fmt.Println(string(node_string))
+		fmt.Println("##################################################")
+		for n2, y := range relation {
+			y.(map[string]interface{})["source"] = countNode[y.(map[string]interface{})["source"].(int64)]
+			y.(map[string]interface{})["target"] = countNode[y.(map[string]interface{})["target"].(int64)]
+			relation[n2] = y
+		}
+		relation_string, _ := json.Marshal(relation)
+		fmt.Println(string(relation_string))
 
 		return "ok", nil
 		// return nil, result.Err()
