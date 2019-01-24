@@ -12,12 +12,26 @@
     <meta name="content-type" content="text/html; charset=GBK">
     
     <!--<link rel="stylesheet" type="text/css" href="./styles.css">-->
+	<style>
+.node {
+  opacity: 0.5;
+}
 
+.node:hover {
+  opacity: 1;
+}
+
+.link {
+  stroke: #999;
+  stroke-opacity: 0.3;
+}
+	</style>
   </head>
   
   <body>
     <svg width="960" height="600"></svg>
     <script>
+
     	var marge = {top:60,bottom:60,left:60,right:60}
     	var svg = d3.select("svg")
     	var width = svg.attr("width")
@@ -51,10 +65,17 @@
     		{source:6,target:8,relation:"职责",value:2}
     	];
     	//设置一个color的颜色比例尺，为了让不同的扇形呈现不同的颜色
+		// http://bl.ocks.org/couchand/6420534
+		function name(d) { return d.name; }
+		function group(d) { return d.relation; }
     	var colorScale = d3.scaleOrdinal()
     		.domain(d3.range(nodes.length))
     		.range(d3.schemeCategory10);
-    	
+
+		
+    	//var color = d3.scale.schemeCategory10();
+		function colorByGroup(d) { return colorScale(group(d)); }
+
     	//新建一个力导向图
     	var forceSimulation = d3.forceSimulation()
     		.force("link",d3.forceLink())
@@ -126,6 +147,7 @@
     			var cirY = d.y;
     			return "translate("+cirX+","+cirY+")";
     		})
+			.attr('class','node')
     		.call(d3.drag()
     			.on("start",started)
     			.on("drag",dragged)
@@ -154,10 +176,16 @@
     		
     	//绘制节点
     	gs.append("circle")
-    		.attr("r",10)
-    		.attr("fill",function(d,i){
-    			return colorScale(i);
-    		})
+    		.attr("r",30)
+			.attr("fill",colorByGroup)
+			.attr('fill-opacity',0.5)
+    		//.attr("fill",function(d,i){
+    		//	return colorScale(i);
+    		//})
+
+		gs.append('circle')
+			.attr('r', 4)
+			.attr('stroke', 'black');
     	//文字
     	gs.append("text")
     		.attr("x",-10)
