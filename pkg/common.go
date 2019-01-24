@@ -91,6 +91,9 @@ func ReadTran(cql string, arg map[string]interface{}) (string, error) {
 						tmp_rs["props"] = rs.(neo4j.Node).Props()
 						tmp_rs["id"] = rs.(neo4j.Node).Id()
 						tmp_rs["labels"] = rs.(neo4j.Node).Labels()
+						tmp_rs["type"] = "node"
+						ss, _ := json.Marshal(tmp_rs)
+						fmt.Println(string(ss))
 						node = append(node, tmp_rs)
 					case neo4j.Relationship:
 						fmt.Println("relationship")
@@ -100,7 +103,17 @@ func ReadTran(cql string, arg map[string]interface{}) (string, error) {
 						tmp_rs["type"] = rs.(neo4j.Relationship).Type()
 						tmp_rs["startid"] = rs.(neo4j.Relationship).StartId()
 						tmp_rs["endid"] = rs.(neo4j.Relationship).EndId()
+						ss, _ := json.Marshal(tmp_rs)
+						fmt.Println(string(ss))
 						relation = append(relation, tmp_rs)
+					case string:
+						fmt.Println("string")
+						tmp_rs["name"] = x
+						tmp_rs["value"] = rs
+						tmp_rs["type"] = "string"
+						ss, _ := json.Marshal(tmp_rs)
+						fmt.Println(string(ss))
+						node = append(node, tmp_rs)
 					default:
 						fmt.Println("unknow type", v)
 					}
@@ -115,6 +128,7 @@ func ReadTran(cql string, arg map[string]interface{}) (string, error) {
 		}
 
 		node_string, _ := json.Marshal(node)
+
 		fmt.Println(string(node_string))
 		relation_string, _ := json.Marshal(relation)
 		fmt.Println(string(relation_string))

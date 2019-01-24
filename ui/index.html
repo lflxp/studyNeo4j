@@ -1,0 +1,28 @@
+<html>
+<head>
+    <script type="text/javascript" src="http://d3js.org/d3.v5.min.js"></script>
+    <meta charset="UTF-8">    
+</head>
+<body>
+  	<p></p>
+  	<p></p>
+    <script>
+        var str = 'this is animal';
+    	var p = d3.select("body")
+    		.selectAll("p");
+    		
+    	// p.text("d3js World");
+        // 字符加载
+        p.datum(str).text(function(d,i){
+            return '第'+i+'个元素'+d;
+        });
+
+        // 数组加载
+        var dataset = ['one','two','fat'];
+        p.data(dataset).text(function(d,i){
+            return '第'+i+'个动物'+d;
+        });
+    </script>
+  </body>
+
+</html>
